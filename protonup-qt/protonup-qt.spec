@@ -20,6 +20,11 @@ BuildRequires:  python3-devel
 # Only needed by %check, which verifies that the vendored module is importable.
 BuildRequires:  python3-vdf
 
+# Fedora's python3-pyside6 is built from C++ bindings, so it does not provide
+# `python3dist(pyside6)`. PySide6 is therefore dropped from the wheel metadata
+# below and required by RPM name here instead.
+Requires:       python3-pyside6
+
 Provides:       bundled(python3dist(inputs)) = 0.5
 
 %description
@@ -40,13 +45,14 @@ tar -xzf %{SOURCE1} -C %{_builddir}
 # repository can satisfy (python3dist(pyside6-essentials), python3dist(inputs)
 # and two git URLs), leaving the package uninstallable.
 #
-#  * PySide6-Essentials is not packaged separately, the full PySide6 is;
+#  * PySide6 is removed here and required by RPM name in the header instead,
+#    because python3-pyside6 provides no python3dist() name;
 #  * vdf and steam are pinned to git tags that are not packaged, while the APIs
 #    used here (vdf.loads/dump/binary_*, steam.utils.appcache.parse_appinfo) are
 #    unchanged between those tags and the packaged releases;
 #  * inputs is removed from the dependency list because it is vendored below.
 sed -i \
-    -e 's|"PySide6-Essentials>=6.3.0"|"PySide6>=6.3.0"|' \
+    -e '/"PySide6-Essentials>=6.3.0",/d' \
     -e 's|"vdf @ git+https://github.com/solsticegamestudios/vdf.git@v4.0"|"vdf>=3.3"|' \
     -e 's|"steam @ git+https://github.com/solsticegamestudios/steam.git@v2.0.0-alpha1"|"steam>=1.6"|' \
     -e '/"inputs==0.5",/d' \
