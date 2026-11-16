@@ -87,6 +87,7 @@ quotes are preferred for regexes so backslashes stay literal.
 | `tag_regex` | optional ERE; only matching tags are considered |
 | `strip_prefix` | optional prefix removed from the tag to form `Version` (default `v`) |
 | `prerelease_suffix` | `true` maps a trailing `b` to a pre-release `Release` |
+| `include_prereleases` | `true` also accepts GitHub releases flagged as pre-release (by default they are skipped) |
 
 ## Adding a package
 

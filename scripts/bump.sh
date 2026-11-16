@@ -73,7 +73,10 @@ for meta in */pkg.toml; do
         github-release|github-tag)
             upstream_repo=$(toml_get "$meta" repo)
             [ -n "$upstream_repo" ] || { echo "bump.sh: $meta has no 'repo' key" >&2; exit 1; }
-            tag=$("$repo_root/scripts/updaters/$updater.sh" "$upstream_repo" "$(toml_get "$meta" tag_regex)")
+            tag=$("$repo_root/scripts/updaters/$updater.sh" \
+                      "$upstream_repo" \
+                      "$(toml_get "$meta" tag_regex)" \
+                      "$(toml_get "$meta" include_prereleases)")
             ;;
         pypi)
             project=$(toml_get "$meta" project)

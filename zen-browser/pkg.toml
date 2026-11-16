@@ -8,3 +8,7 @@ tag_regex = '^[0-9]+\.[0-9]+(\.[0-9]+)?b?$'
 
 # "1.24.2b" becomes Version 1.24.2 with Release 0.1.beta.
 prerelease_suffix = true
+
+# Every Zen release is a beta by nature, so GitHub's "pre-release" flag must
+# not filter them out.
+include_prereleases = true

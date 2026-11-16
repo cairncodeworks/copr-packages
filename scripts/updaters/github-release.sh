@@ -2,17 +2,21 @@
 #
 # Newest tag among the GitHub releases of OWNER/REPO.
 #
-#   github-release.sh OWNER/REPO [TAG_REGEX]
+#   github-release.sh OWNER/REPO [TAG_REGEX] [INCLUDE_PRERELEASES]
 #
 # Releases are checked newest first, so a repository that publishes rolling
 # tags alongside real versions (Zen has "twilight-*") can be filtered with
-# TAG_REGEX. Drafts are skipped; pre-releases are not, because for some
-# projects every release is a beta.
+# TAG_REGEX.
+#
+# Pre-releases are skipped unless INCLUDE_PRERELEASES is "true". Heroic, for
+# example, publishes "v2.23.0-beta.1" before "v2.23.0"; without this filter the
+# beta would be packaged as a stable release. Drafts are always skipped.
 #
 set -eu
 
-repo=${1:?usage: github-release.sh OWNER/REPO [TAG_REGEX]}
+repo=${1:?usage: github-release.sh OWNER/REPO [TAG_REGEX] [INCLUDE_PRERELEASES]}
 regex=${2:-}
+include_prereleases=${3:-}
 
 if [ -n "${GH_TOKEN:-}" ]; then
     json=$(curl -fsSL \
@@ -25,7 +29,11 @@ else
         "https://api.github.com/repos/$repo/releases?per_page=30")
 fi
 
-tags=$(printf '%s' "$json" | jq -r '.[] | select(.draft == false) | .tag_name')
+if [ "$include_prereleases" = "true" ]; then
+    tags=$(printf '%s' "$json" | jq -r '.[] | select(.draft == false) | .tag_name')
+else
+    tags=$(printf '%s' "$json" | jq -r '.[] | select(.draft == false) | select(.prerelease == false) | .tag_name')
+fi
 
 if [ -n "$regex" ]; then
     tags=$(printf '%s\n' "$tags" | grep -E -- "$regex" || true)
