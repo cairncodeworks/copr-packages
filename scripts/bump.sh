@@ -31,18 +31,25 @@ cd "$repo_root"
 # Read a flat `key = "value"` (or `key = 'value'`) pair from a pkg.toml.
 toml_get() {
     value=$(sed -n "s/^[[:space:]]*$2[[:space:]]*=[[:space:]]*//p" "$1" | head -n 1)
-    case "$value" in
-        \"*\") value=${value#\"}; value=${value%\"} ;;
-        \'*\') value=${value#\'}; value=${value%\'} ;;
+    # Strip one layer of matching quotes. Done character-wise, because a
+    # backslash inside ${...} is not portable (dash and bash disagree on it).
+    case "$(printf '%.1s' "$value")" in
+        "'" | '"')
+            value=${value#?}
+            value=${value%?}
+            ;;
     esac
     printf '%s\n' "$value"
 }
 
-spec_field() {
-    case "$2" in
-        version) sed -n 's/^Version:[[:space:]]*//p' "$1" | head -n 1 ;;
-        *)       echo "spec_field: unknown field: $2" >&2; exit 2 ;;
-    esac
+spec_version() {
+    sed -n 's/^Version:[[:space:]]*//p' "$1" | head -n 1
+}
+
+# Release as written in the spec, with the %{?dist} suffix removed.
+spec_release() {
+    release_line=$(sed -n 's/^Release:[[:space:]]*//p' "$1" | head -n 1)
+    printf '%s\n' "${release_line%%%*}"
 }
 
 changed=0
@@ -94,14 +101,18 @@ for meta in */pkg.toml; do
         esac
     fi
 
-    current=$(spec_field "$spec" version)
+    current=$(spec_version "$spec")
+    current_release=$(spec_release "$spec")
 
-    if [ "$version" = "$current" ]; then
-        echo "$pkg: up to date ($current)"
+    # Both fields are compared: upstream moving from "1.24.2b" to "1.24.2"
+    # keeps Version at 1.24.2 and only changes Release from 0.1.beta to 1, and
+    # that still has to be released.
+    if [ "$version" = "$current" ] && [ "$release" = "$current_release" ]; then
+        echo "$pkg: up to date ($current-$current_release)"
         continue
     fi
 
-    echo "$pkg: $current -> $version (upstream tag $tag, release $release)"
+    echo "$pkg: $current-$current_release -> $version-$release (upstream tag $tag)"
 
     if [ "$dry_run" -eq 1 ]; then
         changed=1
