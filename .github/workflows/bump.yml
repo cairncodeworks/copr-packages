@@ -1,0 +1,43 @@
+name: Bump upstream versions
+
+on:
+  schedule:
+    # Every six hours. COPR only rebuilds what got a new tag, so this is cheap.
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package directory to bump (empty = all)
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Tags are needed to tell whether a tag already exists.
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/bump.sh "${{ inputs.package }}"
+
+      # The push is what makes COPR rebuild: the repository webhook listens for
+      # tag creation, and the tag name carries the package name.
+      - name: Push
+        run: git push --follow-tags origin HEAD:main

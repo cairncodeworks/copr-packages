@@ -1,0 +1,28 @@
+name: Rebuild all packages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  COPR_PROJECT: tuxcore/my-repo
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install copr-cli
+        run: |
+          python3 -m pip install --user --quiet copr-cli
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # Needed after changes that do not produce a new tag, such as edits to
+      # .copr/Makefile or to a spec's build requirements.
+      - name: Trigger builds
+        env:
+          COPR_CONFIG: ${{ secrets.COPR_CONFIG }}
+        run: ./scripts/rebuild-all.sh

@@ -1,0 +1,10 @@
+# Build artifacts that a local `rpmbuild -bs` / `spectool -g` leaves behind.
+*.src.rpm
+*.tar.gz
+*.tar.xz
+*.rpm
+
+# Downloaded upstream sources inside package directories.
+heroic-games-launcher/Heroic-*
+zen-browser/zen.linux-*
+protonup-qt/v*.tar.gz

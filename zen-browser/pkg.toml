@@ -1,0 +1,10 @@
+updater = "github-release"
+repo    = "zen-browser/desktop"
+
+# Upstream also publishes rolling "twilight-*" tags that are not releases in
+# the RPM sense. Only accept plain version tags, optionally with the beta
+# suffix ("1.24.2b", "1.24b").
+tag_regex = '^[0-9]+\.[0-9]+(\.[0-9]+)?b?$'
+
+# "1.24.2b" becomes Version 1.24.2 with Release 0.1.beta.
+prerelease_suffix = true
