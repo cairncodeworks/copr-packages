@@ -60,6 +60,14 @@ Version bumps are automated by `.github/workflows/bump.yml`:
 
 Nothing needs to be pasted into the COPR web UI when a release happens.
 
+The tag name is not decoration: for a tag event COPR learns *which* package to
+rebuild from the tag, in the format `PKGNAME-VERSION[-RELEASE]` (a dash may be
+replaced by an underscore). That is why `bump.sh` tags
+`zen-browser-1.24.2-0.1.beta` rather than `v1.24.2`. If a package's tag pattern
+ever has to differ from its COPR package name, the name can be appended to the
+webhook URL instead, as
+`.../webhooks/github/<ID>/<UUID>/<copr_package_name>/`.
+
 ### Spec contract
 
 `scripts/set-version.sh` rewrites exactly three lines, so every spec must keep
@@ -140,17 +148,26 @@ copr-cli edit-package-scm tuxcore/my-repo \
     --webhook-rebuild on
 ```
 
-If a flag name has changed, check `copr-cli edit-package-scm --help`; the
-values (`make_srpm`, `on`) are what matter.
+`--method make_srpm` is what makes COPR run `.copr/Makefile`. `--webhook-rebuild
+on` only makes COPR *accept* webhook builds for the package; without it the tag
+event is ignored.
 
 Then point the repository's GitHub webhook at the URL shown under
-**Settings → Integrations** in the COPR project, with the event set to
-**Branch or tag creation** only. Push events must stay off: a README change
-would otherwise rebuild every package.
+**Settings → Integrations** in the COPR project: content type `application/json`,
+and under "Let me select individual events" choose **Branch or tag creation**
+only. Push events must stay off — otherwise a README change would rebuild every
+package.
 
-`rebuild-all.yml` (manual dispatch) triggers a rebuild of every package through
-`copr-cli`; it needs a `COPR_CONFIG` repository secret containing the contents
-of `~/.config/copr`.
+Finally start the first build by hand, once per package; from then on the tag
+does it:
+
+```sh
+copr-cli build-package tuxcore/my-repo --name zen-browser
+```
+
+`rebuild-all.yml` (manual dispatch) does the same for every package at once
+through `copr-cli`; it needs a `COPR_CONFIG` repository secret containing the
+contents of `~/.config/copr`.
 
 ## Notes and known limits
 
