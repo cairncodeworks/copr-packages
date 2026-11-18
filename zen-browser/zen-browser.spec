@@ -7,7 +7,7 @@
 # *above* "1.24.2", so the final release would never replace the beta. The
 # trailing letter is therefore mapped to a pre-release Release instead, which
 # sorts below 1.
-%global upstream_tag 1.24.2b
+%global upstream_tag 1.24.3b
 
 %global debug_package %{nil}
 %global __os_install_post %{nil}
@@ -20,7 +20,7 @@
 %global __provides_exclude_from ^%{_libdir}/zen/
 
 Name:           zen-browser
-Version:        1.24.2
+Version:        1.24.3
 Release:        0.1.beta%{?dist}
 Summary:        Firefox-based browser with a calm, distraction-free interface
 License:        MPL-2.0
@@ -135,3 +135,6 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/zen.desktop || :
 %changelog
 * Mon Nov 16 2026 CairnCodeWorks <noreply@cairncodeworks.dev> - 1.24.2-0.1.beta
 - Initial package
+
+* Wed Nov 18 2026 CairnCodeWorks <noreply@cairncodeworks.dev> - 1.24.3-0.1.beta
+- Update to 1.24.3b
